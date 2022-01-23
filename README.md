@@ -1,99 +1,38 @@
-# Logstash Plugin
+# Logstash Input OpenSearch
 
-[![Gem Version](https://badge.fury.io/rb/logstash-input-elasticsearch.svg)](https://badge.fury.io/rb/logstash-input-elasticsearch)
-[![Travis Build Status](https://travis-ci.com/logstash-plugins/logstash-input-elasticsearch.svg)](https://travis-ci.com/logstash-plugins/logstash-input-elasticsearch)
+- [Welcome!](#welcome)
+- [Project Resources](#project-resources)
+- [Code of Conduct](#code-of-conduct)
+- [License](#license)
+- [Copyright](#copyright)
 
-This is a plugin for [Logstash](https://github.com/elastic/logstash).
+## Welcome!
 
-It is fully free and fully open source. The license is Apache 2.0, meaning you are pretty much free to use it however you want in whatever way.
+**logstash-input-opensearch** is a community-driven, open source fork logstash-input-elasticsearch licensed under the [Apache v2.0 License](LICENSE). For more information, see [opensearch.org](https://opensearch.org/).
 
-## Documentation
+The logstash-input-opensearch plugin helps to read the search query results performed on an OpenSearch cluster. This is useful for replaying test logs, reindexing, etc. This helps users to run the query one time to load data into Logstash.
 
-Logstash provides infrastructure to automatically generate documentation for this plugin. We use the asciidoc format to write documentation so any comments in the source code will be first converted into asciidoc and then into html. All plugin documentation are placed under one [central location](http://www.elastic.co/guide/en/logstash/current/).
+## Project Resources
 
-- For formatting code or config example, you can use the asciidoc `[source,ruby]` directive
-- For more asciidoc formatting tips, see the excellent reference here https://github.com/elastic/docs#asciidoc-guide
+* [Project Website](https://opensearch.org/)
+* [Documentation](https://opensearch.org/docs/clients/logstash/index/)
+* [Developer Guide](DEVELOPER_GUIDE.md)
+* Need help? Try [Forums](https://discuss.opendistrocommunity.dev/)
+* [Project Principles](https://opensearch.org/#principles)
+* [Contributing to OpenSearch](CONTRIBUTING.md)
+* [Maintainer Responsibilities](MAINTAINERS.md)
+* [Release Management](RELEASING.md)
+* [Admin Responsibilities](ADMINS.md)
+* [Security](SECURITY.md)
 
-## Need Help?
+## Code of Conduct
 
-Need help? Try #logstash on freenode IRC or the https://discuss.elastic.co/c/logstash discussion forum.
+This project has adopted the [Amazon Open Source Code of Conduct](CODE_OF_CONDUCT.md). For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq), or contact [opensource-codeofconduct@amazon.com](mailto:opensource-codeofconduct@amazon.com) with any additional questions or comments.
 
-## Developing
+## License
 
-### 1. Plugin Developement and Testing
+This project is licensed under the [Apache v2.0 License](LICENSE.txt).
 
-#### Code
-- To get started, you'll need JRuby with the Bundler gem installed.
+## Copyright
 
-- Create a new plugin or clone and existing from the GitHub [logstash-plugins](https://github.com/logstash-plugins) organization. We also provide [example plugins](https://github.com/logstash-plugins?query=example).
-
-- Install dependencies
-```sh
-bundle install
-```
-
-#### Test
-
-- Update your dependencies
-
-```sh
-bundle install
-```
-
-- Run tests
-
-```sh
-bundle exec rspec
-```
-
-### 2. Running your unpublished Plugin in Logstash
-
-#### 2.1 Run in a local Logstash clone
-
-- Edit Logstash `Gemfile` and add the local plugin path, for example:
-```ruby
-gem "logstash-filter-awesome", :path => "/your/local/logstash-filter-awesome"
-```
-- Install plugin
-```sh
-# Logstash 2.3 and higher
-bin/logstash-plugin install --no-verify
-
-# Prior to Logstash 2.3
-bin/plugin install --no-verify
-
-```
-- Run Logstash with your plugin
-```sh
-bin/logstash -e 'filter {awesome {}}'
-```
-At this point any modifications to the plugin code will be applied to this local Logstash setup. After modifying the plugin, simply rerun Logstash.
-
-#### 2.2 Run in an installed Logstash
-
-You can use the same **2.1** method to run your plugin in an installed Logstash by editing its `Gemfile` and pointing the `:path` to your local plugin development directory or you can build the gem and install it using:
-
-- Build your plugin gem
-```sh
-gem build logstash-filter-awesome.gemspec
-```
-- Install the plugin from the Logstash home
-```sh
-# Logstash 2.3 and higher
-bin/logstash-plugin install --no-verify
-
-# Prior to Logstash 2.3
-bin/plugin install --no-verify
-
-```
-- Start Logstash and proceed to test the plugin
-
-## Contributing
-
-All contributions are welcome: ideas, patches, documentation, bug reports, complaints, and even something you drew up on a napkin.
-
-Programming is not a required skill. Whatever you've seen about open source and maintainers or community members  saying "send patches or die" - you will not see that here.
-
-It is more important to the community that you are able to contribute.
-
-For more information about contributing, see the [CONTRIBUTING](https://github.com/elastic/logstash/blob/master/CONTRIBUTING.md) file.
+Copyright OpenSearch Contributors. See [NOTICE](NOTICE.txt) for details.
