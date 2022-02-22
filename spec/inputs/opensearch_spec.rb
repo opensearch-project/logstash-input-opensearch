@@ -1,8 +1,8 @@
 # encoding: utf-8
 require "logstash/devutils/rspec/spec_helper"
 require "logstash/devutils/rspec/shared_examples"
-require "logstash/inputs/elasticsearch"
-require "elasticsearch"
+require "logstash/inputs/opensearch"
+require "opensearch"
 require "timecop"
 require "stud/temporary"
 require "time"
@@ -13,13 +13,13 @@ require "uri"
 
 require 'logstash/plugin_mixins/ecs_compatibility_support/spec_helper'
 
-describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
+describe LogStash::Inputs::OpenSearch, :ecs_compatibility_support do
 
   let(:plugin) { described_class.new(config) }
   let(:queue) { Queue.new }
 
   before(:each) do
-     Elasticsearch::Client.send(:define_method, :ping) { } # define no-action ping method
+     OpenSearch::Client.send(:define_method, :ping) { } # define no-action ping method
   end
 
   context "register" do
@@ -29,15 +29,15 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       }
     end
 
-    context "against authentic Elasticsearch" do
+    context "against authentic OpenSearch" do
       it "should not raise an exception" do
        expect { plugin.register }.to_not raise_error
      end
     end
 
-    context "against not authentic Elasticsearch" do
+    context "against not authentic OpenSearch" do
       before(:each) do
-         Elasticsearch::Client.send(:define_method, :ping) { raise Elasticsearch::UnsupportedProductError.new("Fake error") } # define error ping method
+         OpenSearch::Client.send(:define_method, :ping) { raise OpenSearch::UnsupportedProductError.new("Fake error") } # define error ping method
       end
 
       it "should raise ConfigurationError" do
@@ -47,7 +47,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
   end
 
   it_behaves_like "an interruptible input plugin" do
-    let(:esclient) { double("elasticsearch-client") }
+    let(:client) { double("opensearch-client") }
     let(:config) do
       {
         "schedule" => "* * * * * UTC"
@@ -55,7 +55,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
     end
 
     before :each do
-      allow(Elasticsearch::Client).to receive(:new).and_return(esclient)
+      allow(OpenSearch::Client).to receive(:new).and_return(client)
       hit = {
         "_index" => "logstash-2014.10.12",
         "_type" => "logs",
@@ -63,10 +63,10 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
         "_score" => 1.0,
         "_source" => { "message" => ["ohayo"] }
       }
-      allow(esclient).to receive(:search) { { "hits" => { "hits" => [hit] } } }
-      allow(esclient).to receive(:scroll) { { "hits" => { "hits" => [hit] } } }
-      allow(esclient).to receive(:clear_scroll).and_return(nil)
-      allow(esclient).to receive(:ping)
+      allow(client).to receive(:search) { { "hits" => { "hits" => [hit] } } }
+      allow(client).to receive(:scroll) { { "hits" => { "hits" => [hit] } } }
+      allow(client).to receive(:clear_scroll).and_return(nil)
+      allow(client).to receive(:ping)
     end
   end
 
@@ -80,7 +80,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
     let(:config) do
       %q[
         input {
-          elasticsearch {
+          opensearch {
             hosts => ["localhost"]
             query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
           }
@@ -120,8 +120,8 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
     end
 
     before(:each) do
-      client = Elasticsearch::Client.new
-      expect(Elasticsearch::Client).to receive(:new).with(any_args).and_return(client)
+      client = OpenSearch::Client.new
+      expect(OpenSearch::Client).to receive(:new).with(any_args).and_return(client)
       expect(client).to receive(:search).with(any_args).and_return(mock_response)
       expect(client).to receive(:scroll).with({ :body => { :scroll_id => "cXVlcnlUaGVuRmV0Y2g" }, :scroll=> "1m" }).and_return(mock_scroll_response)
       expect(client).to receive(:clear_scroll).and_return(nil)
@@ -141,7 +141,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       let(:config) do
         %q[
           input {
-            elasticsearch {
+            opensearch {
               hosts => ["localhost"]
               query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
               target => "[@metadata][_source]"
@@ -162,7 +162,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
 
   end
 
-  # This spec is an adapter-spec, ensuring that we send the right sequence of messages to our Elasticsearch Client
+  # This spec is an adapter-spec, ensuring that we send the right sequence of messages to our OpenSearch Client
   # to support sliced scrolling. The underlying implementation will spawn its own threads to consume, so we must be
   # careful to use thread-safe constructs.
   context "with managed sliced scrolling" do
@@ -228,7 +228,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       end
     end
 
-    # This section of specs heavily mocks the Elasticsearch::Client, and ensures that the Elasticsearch Input Plugin
+    # This section of specs heavily mocks the OpenSearch::Client, and ensures that the OpenSearch Input Plugin
     # behaves as expected when handling a series of sliced, scrolled requests/responses.
     context 'adapter/integration' do
       let(:response_template) do
@@ -316,7 +316,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       end
       # END SLICE 1
 
-      let(:client) { Elasticsearch::Client.new }
+      let(:client) { OpenSearch::Client.new }
 
       # RSpec mocks validations are not threadsafe.
       # Allow caller to synchronize.
@@ -331,7 +331,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       end
 
       before(:each) do
-        expect(Elasticsearch::Client).to receive(:new).with(any_args).and_return(client)
+        expect(OpenSearch::Client).to receive(:new).with(any_args).and_return(client)
         plugin.register
 
         expect(client).to receive(:clear_scroll).and_return(nil)
@@ -398,7 +398,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
     end
   end
 
-  context "with Elasticsearch document information" do
+  context "with OpenSearch document information" do
     let!(:response) do
       {
         "_scroll_id" => "cXVlcnlUaGVuRmV0Y2g",
@@ -434,10 +434,10 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       }
     end
 
-    let(:client) { Elasticsearch::Client.new }
+    let(:client) { OpenSearch::Client.new }
 
     before do
-      expect(Elasticsearch::Client).to receive(:new).with(any_args).and_return(client)
+      expect(OpenSearch::Client).to receive(:new).with(any_args).and_return(client)
       expect(client).to receive(:search).with(any_args).and_return(response)
       allow(client).to receive(:scroll).with({ :body => {:scroll_id => "cXVlcnlUaGVuRmV0Y2g"}, :scroll => "1m" }).and_return(scroll_reponse)
       allow(client).to receive(:clear_scroll).and_return(nil)
@@ -454,7 +454,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
         let(:config_metadata) do
           %q[
               input {
-                elasticsearch {
+                opensearch {
                   hosts => ["localhost"]
                   query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
                   docinfo => true
@@ -473,16 +473,16 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
             expect(event.get("[@metadata][_type]")).to eq('logs')
             expect(event.get("[@metadata][_id]")).to eq('C5b2xLQwTZa76jBmHIbwHQ')
           else
-            expect(event.get("[@metadata][input][elasticsearch][_index]")).to eq('logstash-2014.10.12')
-            expect(event.get("[@metadata][input][elasticsearch][_type]")).to eq('logs')
-            expect(event.get("[@metadata][input][elasticsearch][_id]")).to eq('C5b2xLQwTZa76jBmHIbwHQ')
+            expect(event.get("[@metadata][input][opensearch][_index]")).to eq('logstash-2014.10.12')
+            expect(event.get("[@metadata][input][opensearch][_type]")).to eq('logs')
+            expect(event.get("[@metadata][input][opensearch][_id]")).to eq('C5b2xLQwTZa76jBmHIbwHQ')
           end
         end
 
         it 'merges values if the `docinfo_target` already exist in the `_source` document' do
           config_metadata_with_hash = %Q[
               input {
-                elasticsearch {
+                opensearch {
                   hosts => ["localhost"]
                   query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
                   docinfo => true
@@ -518,7 +518,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
         it 'should move the document information to the specified field' do
           config = %q[
               input {
-                elasticsearch {
+                opensearch {
                   hosts => ["localhost"]
                   query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
                   docinfo => true
@@ -539,7 +539,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
           fields = ["_index"]
           config = %Q[
               input {
-                elasticsearch {
+                opensearch {
                   hosts => ["localhost"]
                   query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
                   docinfo => true
@@ -551,14 +551,14 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
             queue.pop
           end
 
-          meta_base = event.get(ecs_select.active_mode == :disabled ? "@metadata" : "[@metadata][input][elasticsearch]")
+          meta_base = event.get(ecs_select.active_mode == :disabled ? "@metadata" : "[@metadata][input][opensearch]")
           expect(meta_base.keys).to eq(fields)
         end
 
         it 'should be able to reference metadata fields in `add_field` decorations' do
           config = %q[
             input {
-              elasticsearch {
+              opensearch {
                 hosts => ["localhost"]
                 query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
                 docinfo => true
@@ -584,7 +584,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       it 'should keep the document information in the root of the event' do
         config = %q[
           input {
-            elasticsearch {
+            opensearch {
               hosts => ["localhost"]
               query => '{ "query": { "match": { "city_name": "Okinawa" } }, "fields": ["message"] }'
             }
@@ -871,7 +871,7 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
           request = webserver.wait_receive_request
 
           expect(request.header['user-agent'].size).to eq(1)
-          expect(request.header['user-agent'][0]).to match(/logstash\/\d*\.\d*\.\d* \(OS=.*; JVM=.*\) logstash-input-elasticsearch\/\d*\.\d*\.\d*/)
+          expect(request.header['user-agent'][0]).to match(/logstash\/\d*\.\d*\.\d* \(OS=.*; JVM=.*\) logstash-input-opensearch\/\d*\.\d*\.\d*/)
         end
       end
     end
@@ -896,15 +896,15 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
       context 'with a valid value' do
         let(:config_value) { 17 }
 
-        it "instantiates the elasticsearch client with the timeout value set via #{manticore_transport_option} in the transport options" do
-          expect(Elasticsearch::Client).to receive(:new) do |new_elasticsearch_client_params|
+        it "instantiates the opensearch client with the timeout value set via #{manticore_transport_option} in the transport options" do
+          expect(OpenSearch::Client).to receive(:new) do |new_opensearch_client_params|
             # We rely on Manticore-specific transport options, fail early if we are using a different
             # transport or are allowing the client to determine its own transport class.
-            expect(new_elasticsearch_client_params).to include(:transport_class)
-            expect(new_elasticsearch_client_params[:transport_class].name).to match(/\bManticore\b/)
+            expect(new_opensearch_client_params).to include(:transport_class)
+            expect(new_opensearch_client_params[:transport_class].name).to match(/\bManticore\b/)
 
-            expect(new_elasticsearch_client_params).to include(:transport_options)
-            transport_options = new_elasticsearch_client_params[:transport_options]
+            expect(new_opensearch_client_params).to include(:transport_options)
+            transport_options = new_opensearch_client_params[:transport_options]
             expect(transport_options).to include(manticore_transport_option)
             expect(transport_options[manticore_transport_option]).to eq(config_value.to_i)
             mock_client = double("fake_client")
@@ -961,8 +961,8 @@ describe LogStash::Inputs::Elasticsearch, :ecs_compatibility_support do
 
   end
 
-  # @note can be removed once we depends on elasticsearch gem >= 6.x
-  def extract_transport(client) # on 7.x client.transport is a ES::Transport::Client
+  # @note can be removed once we depends on opensearch gem >= 6.x
+  def extract_transport(client) # on 7.x client.transport is a OpenSearch::Transport::Client
     client.transport.respond_to?(:transport) ? client.transport.transport : client.transport
   end
 

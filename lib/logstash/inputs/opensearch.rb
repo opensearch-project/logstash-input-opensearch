@@ -9,22 +9,22 @@ require 'logstash/plugin_mixins/ecs_compatibility_support'
 require 'logstash/plugin_mixins/ecs_compatibility_support/target_check'
 require "base64"
 
-require "elasticsearch"
-require "elasticsearch/transport/transport/http/manticore"
-require_relative "elasticsearch/patches/_elasticsearch_transport_http_manticore"
-require_relative "elasticsearch/patches/_elasticsearch_transport_connections_selector"
+require "opensearch"
+require "opensearch/transport/transport/http/manticore"
+require_relative "opensearch/patches/_opensearch_transport_http_manticore"
+require_relative "opensearch/patches/_opensearch_transport_connections_selector"
 
 # .Compatibility Note
 # [NOTE]
 # ================================================================================
-# Starting with Elasticsearch 5.3, there's an {ref}modules-http.html[HTTP setting]
+# Starting with OpenSearch 5.3, there's an {ref}modules-http.html[HTTP setting]
 # called `http.content_type.required`. If this option is set to `true`, and you
-# are using Logstash 2.4 through 5.2, you need to update the Elasticsearch input
+# are using Logstash 2.4 through 5.2, you need to update the OpenSearch input
 # plugin to version 4.0.2 or higher.
 # 
 # ================================================================================
 # 
-# Read from an Elasticsearch cluster, based on search query results.
+# Read from an OpenSearch cluster, based on search query results.
 # This is useful for replaying test logs, reindexing, etc.
 # It also supports periodically scheduling lookup enrichments
 # using a cron syntax (see `schedule` setting).
@@ -32,14 +32,14 @@ require_relative "elasticsearch/patches/_elasticsearch_transport_connections_sel
 # Example:
 # [source,ruby]
 #     input {
-#       # Read all documents from Elasticsearch matching the given query
-#       elasticsearch {
+#       # Read all documents from OpenSearch matching the given query
+#       opensearch {
 #         hosts => "localhost"
 #         query => '{ "query": { "match": { "statuscode": 200 } }, "sort": [ "_doc" ] }'
 #       }
 #     }
 #
-# This would create an Elasticsearch query with the following format:
+# This would create an OpenSearch query with the following format:
 # [source,json]
 #     curl 'http://localhost:9200/logstash-*/_search?&scroll=1m&size=1000' -d '{
 #       "query": {
@@ -68,7 +68,7 @@ require_relative "elasticsearch/patches/_elasticsearch_transport_connections_sel
 # Further documentation describing this syntax can be found https://github.com/jmettraux/rufus-scheduler#parsing-cronlines-and-time-strings[here].
 #
 #
-class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
+class LogStash::Inputs::OpenSearch < LogStash::Inputs::Base
 
   include LogStash::PluginMixins::ECSCompatibilitySupport(:disabled, :v1, :v8 => :v1)
   include LogStash::PluginMixins::ECSCompatibilitySupport::TargetCheck
@@ -77,9 +77,9 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
 
   extend LogStash::PluginMixins::ValidatorSupport::FieldReferenceValidationAdapter
 
-  config_name "elasticsearch"
+  config_name "opensearch"
 
-  # List of elasticsearch hosts to use for querying.
+  # List of opensearch hosts to use for querying.
   # Each host can be either IP, HOST, IP:port or HOST:port.
   # Port defaults to 9200
   config :hosts, :validate => :array
@@ -87,9 +87,9 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
   # The index or alias to search.
   config :index, :validate => :string, :default => "logstash-*"
 
-  # The query to be executed. Read the Elasticsearch query DSL documentation
+  # The query to be executed. Read the OpenSearch query DSL documentation
   # for more info
-  # https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
+  # https://opensearch.org/docs/latest/opensearch/query-dsl/index/
   config :query, :validate => :string, :default => '{ "sort": [ "_doc" ] }'
 
   # This allows you to set the maximum number of hits returned per scroll.
@@ -104,19 +104,19 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
   # by this pipeline input.
   config :slices, :validate => :number
 
-  # If set, include Elasticsearch document information such as index, type, and
+  # If set, include OpenSearch document information such as index, type, and
   # the id in the event.
   #
   # It might be important to note, with regards to metadata, that if you're
   # ingesting documents with the intent to re-index them (or just update them)
-  # that the `action` option in the elasticsearch output wants to know how to
+  # that the `action` option in the opensearch output wants to know how to
   # handle those things. It can be dynamically assigned with a field
   # added to the metadata.
   #
   # Example
   # [source, ruby]
   #     input {
-  #       elasticsearch {
+  #       opensearch {
   #         hosts => "es.production.mysite.org"
   #         index => "mydata-2018.09.*"
   #         query => "*"
@@ -126,7 +126,7 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
   #       }
   #     }
   #     output {
-  #       elasticsearch {
+  #       opensearch {
   #         index => "copy-of-production.%{[@metadata][_index]}"
   #         document_type => "%{[@metadata][_type]}"
   #         document_id => "%{[@metadata][_id]}"
@@ -135,13 +135,11 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
   #
   config :docinfo, :validate => :boolean, :default => false
 
-  # Where to move the Elasticsearch document information.
-  # default: [@metadata][input][elasticsearch] in ECS mode, @metadata field otherwise
+  # Where to move the OpenSearch document information.
+  # default: [@metadata][input][opensearch] in ECS mode, @metadata field otherwise
   config :docinfo_target, :validate=> :field_reference
 
   # List of document metadata to move to the `docinfo_target` field.
-  # To learn more about Elasticsearch metadata fields read
-  # http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_document_metadata.html
   config :docinfo_fields, :validate => :array, :default => ['_index', '_type', '_id']
 
   # Basic Auth - username
@@ -160,17 +158,12 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
   config :socket_timeout_seconds, :validate => :positive_whole_number, :default => 60
 
   # Cloud ID, from the Elastic Cloud web console. If set `hosts` should not be used.
-  #
-  # For more info, check out the https://www.elastic.co/guide/en/logstash/current/connecting-to-cloud.html#_cloud_id[Logstash-to-Cloud documentation]
   config :cloud_id, :validate => :string
 
   # Cloud authentication string ("<username>:<password>" format) is an alternative for the `user`/`password` configuration.
-  #
-  # For more info, check out the https://www.elastic.co/guide/en/logstash/current/connecting-to-cloud.html#_cloud_auth[Logstash-to-Cloud documentation]
   config :cloud_auth, :validate => :password
 
-  # Authenticate using Elasticsearch API key.
-  # format is id:api_key (as returned by https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-create-api-key.html[Create API key])
+  # Authenticate using OpenSearch API key.
   config :api_key, :validate => :password
 
   # Set the address of a forward HTTP proxy.
@@ -196,7 +189,7 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
     super(params)
 
     if docinfo_target.nil?
-      @docinfo_target = ecs_select[disabled: '@metadata', v1: '[@metadata][input][elasticsearch]']
+      @docinfo_target = ecs_select[disabled: '@metadata', v1: '[@metadata][input][opensearch]']
     end
   end
 
@@ -210,8 +203,8 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
     }
     @base_query = LogStash::Json.load(@query)
     if @slices
-      @base_query.include?('slice') && fail(LogStash::ConfigurationError, "Elasticsearch Input Plugin's `query` option cannot specify specific `slice` when configured to manage parallel slices with `slices` option")
-      @slices < 1 && fail(LogStash::ConfigurationError, "Elasticsearch Input Plugin's `slices` option must be greater than zero, got `#{@slices}`")
+      @base_query.include?('slice') && fail(LogStash::ConfigurationError, "OpenSearch Input Plugin's `query` option cannot specify specific `slice` when configured to manage parallel slices with `slices` option")
+      @slices < 1 && fail(LogStash::ConfigurationError, "OpenSearch Input Plugin's `slices` option must be greater than zero, got `#{@slices}`")
     end
 
     validate_authentication
@@ -234,10 +227,10 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
 
     transport_options[:proxy] = @proxy.to_s if @proxy && !@proxy.eql?('')
 
-    @client = Elasticsearch::Client.new(
+    @client = OpenSearch::Client.new(
       :hosts => hosts,
       :transport_options => transport_options,
-      :transport_class => ::Elasticsearch::Transport::Transport::HTTP::Manticore,
+      :transport_class => ::OpenSearch::Transport::Transport::HTTP::Manticore,
       :ssl => ssl_options
     )
     test_connection!
@@ -336,7 +329,7 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
       @logger.error("Incompatible Event, incompatible type for the docinfo_target=#{@docinfo_target} field in the `_source` document, expected a hash got:", :docinfo_target_type => docinfo_target.class, :event => event.to_hash_with_metadata)
 
       # TODO: (colin) I am not sure raising is a good strategy here?
-      raise Exception.new("Elasticsearch input: incompatible event")
+      raise Exception.new("OpenSearch input: incompatible event")
     end
 
     @docinfo_fields.each do |field|
@@ -417,8 +410,8 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
       jvm_vendor = java.lang.System.getProperty('java.vendor')
       jvm_version = java.lang.System.getProperty('java.version')
 
-      plugin_version = Gem.loaded_specs["logstash-input-elasticsearch"].version
-      # example: logstash/7.14.1 (OS=Linux-5.4.0-84-generic-amd64; JVM=AdoptOpenJDK-11.0.11) logstash-input-elasticsearch/4.10.0
+      plugin_version = Gem.loaded_specs["logstash-input-opensearch"].version
+      # example: logstash/7.14.1 (OS=Linux-5.4.0-84-generic-amd64; JVM=AdoptOpenJDK-11.0.11) logstash-input-opensearch/4.10.0
       "logstash/#{LOGSTASH_VERSION} (OS=#{os_name}-#{os_version}-#{os_arch}; JVM=#{jvm_vendor}-#{jvm_version}) logstash-#{@plugin_type}-#{config_name}/#{plugin_version}"
   end
 
@@ -451,7 +444,7 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
     rescue ArgumentError => e
       raise LogStash::ConfigurationError, e.message.to_s.sub(/Cloud Id/i, 'cloud_id')
     end
-    cloud_uri = "#{cloud_id.elasticsearch_scheme}://#{cloud_id.elasticsearch_host}"
+    cloud_uri = "#{cloud_id.opensearch_scheme}://#{cloud_id.opensearch_host}"
     LogStash::Util::SafeURI.new(cloud_uri)
   end
 
@@ -477,8 +470,8 @@ class LogStash::Inputs::Elasticsearch < LogStash::Inputs::Base
 
   def test_connection!
     @client.ping
-  rescue Elasticsearch::UnsupportedProductError
-    raise LogStash::ConfigurationError, "Could not connect to a compatible version of Elasticsearch"
+  rescue OpenSearch::UnsupportedProductError
+    raise LogStash::ConfigurationError, "Could not connect to a compatible version of OpenSearch"
   end
 
   module URIOrEmptyValidator

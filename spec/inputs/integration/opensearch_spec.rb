@@ -1,12 +1,12 @@
 # encoding: utf-8
 require "logstash/devutils/rspec/spec_helper"
 require "logstash/plugin"
-require "logstash/inputs/elasticsearch"
-require_relative "../../../spec/es_helper"
+require "logstash/inputs/opensearch"
+require_relative "../../../spec/opensearch_helper"
 
-describe LogStash::Inputs::Elasticsearch do
+describe LogStash::Inputs::OpenSearch do
 
-  let(:config)   { { 'hosts' => [ESHelper.get_host_port],
+  let(:config)   { { 'hosts' => [OpenSearchHelper.get_host_port],
                      'index' => 'logs',
                      'query' => '{ "query": { "match": { "message": "Not found"} }}' } }
   let(:plugin) { described_class.new(config) }
@@ -14,14 +14,14 @@ describe LogStash::Inputs::Elasticsearch do
   let(:client_options) { Hash.new }
 
   before(:each) do
-    @es = ESHelper.get_client(client_options)
+    @es = OpenSearchHelper.get_client(client_options)
     # Delete all templates first.
-    # Clean ES of data before we start.
+    # Clean OpenSearch of data before we start.
     @es.indices.delete_template(:name => "*")
     # This can fail if there are no indexes, ignore failure.
     @es.indices.delete(:index => "*") rescue nil
     10.times do
-      ESHelper.index_doc(@es, :index => 'logs', :body => { :response => 404, :message=> 'Not Found'})
+      OpenSearchHelper.index_doc(@es, :index => 'logs', :body => { :response => 404, :message=> 'Not Found'})
     end
     @es.indices.refresh
   end
@@ -31,12 +31,12 @@ describe LogStash::Inputs::Elasticsearch do
     @es.indices.delete(:index => "*") rescue nil
   end
 
-  shared_examples 'an elasticsearch index plugin' do
+  shared_examples 'an opensearch index plugin' do
     before(:each) do
       plugin.register
     end
 
-    it 'should retrieve json event from elasticsearch' do
+    it 'should retrieve json event from opensearch' do
       queue = []
       plugin.run(queue)
       event = queue.pop
@@ -45,15 +45,15 @@ describe LogStash::Inputs::Elasticsearch do
     end
   end
 
-  describe 'against an unsecured elasticsearch', :integration => true do
+  describe 'against an unsecured opensearch', :integration => true do
     before(:each) do
       plugin.register
     end
 
-    it_behaves_like 'an elasticsearch index plugin'
+    it_behaves_like 'an opensearch index plugin'
   end
 
-  describe 'against a secured elasticsearch', :secure_integration => true do
+  describe 'against a secured opensearch', :secure_integration => true do
     let(:user) { ENV['ELASTIC_USER'] || 'simpleuser' }
     let(:password) { ENV['ELASTIC_PASSWORD'] || 'abc123' }
     let(:ca_file) { "spec/fixtures/test_certs/ca.crt" }
@@ -62,7 +62,7 @@ describe LogStash::Inputs::Elasticsearch do
 
     let(:config) { super().merge('user' => user, 'password' => password, 'ssl' => true, 'ca_file' => ca_file) }
 
-    it_behaves_like 'an elasticsearch index plugin'
+    it_behaves_like 'an opensearch index plugin'
 
     context "incorrect auth credentials" do
 
@@ -73,7 +73,7 @@ describe LogStash::Inputs::Elasticsearch do
       let(:queue) { [] }
 
       it "fails to run the plugin" do
-        expect { plugin.register }.to raise_error Elasticsearch::Transport::Transport::Errors::Unauthorized
+        expect { plugin.register }.to raise_error OpenSearch::Transport::Transport::Errors::Unauthorized
       end
     end
 
