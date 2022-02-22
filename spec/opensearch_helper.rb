@@ -1,4 +1,4 @@
-module ESHelper
+module OpenSearchHelper
   def self.get_host_port
     if ENV["INTEGRATION"] == "true" || ENV["SECURE_INTEGRATION"] == "true"
       "integration:9200"
@@ -8,7 +8,7 @@ module ESHelper
   end
 
   def self.get_client(options)
-    require 'elasticsearch/transport/transport/http/faraday' # supports user/password options
+    require 'opensearch/transport/transport/http/faraday' # supports user/password options
     host, port = get_host_port.split(':')
     host_opts = { host: host, port: port, scheme: 'http' }
     ssl_opts = {}
@@ -23,18 +23,18 @@ module ESHelper
       host_opts[:password] = options[:password]
     end
 
-    Elasticsearch::Client.new(hosts: [host_opts],
+    OpenSearch::Client.new(hosts: [host_opts],
                               transport_options: { ssl: ssl_opts },
-                              transport_class: Elasticsearch::Transport::Transport::HTTP::Faraday)
+                              transport_class: OpenSearch::Transport::Transport::HTTP::Faraday)
   end
 
   def self.doc_type
     "_doc"
   end
 
-  def self.index_doc(es, params)
+  def self.index_doc(opensearch, params)
     type = doc_type
     params[:type] = doc_type unless type.nil?
-    es.index(params)
+    opensearch.index(params)
   end
 end

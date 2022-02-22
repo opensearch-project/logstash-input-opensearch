@@ -1,5 +1,5 @@
-require 'elasticsearch'
-require 'elasticsearch/transport/transport/connections/selector'
+require 'opensearch'
+require 'opensearch/transport/transport/connections/selector'
 
   # elasticsearch-transport versions prior to 7.2.0 suffered of a race condition on accessing
   # the connection pool. This issue was fixed (in 7.2.0) with
@@ -7,7 +7,7 @@ require 'elasticsearch/transport/transport/connections/selector'
   #
   # This plugin, at the moment, is using elasticsearch >= 5.0.5
   # When this requirement ceases, this patch could be removed.
-module Elasticsearch
+module OpenSearch
   module Transport
     module Transport
       module Connections
