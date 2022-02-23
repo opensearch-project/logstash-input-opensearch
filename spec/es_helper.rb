@@ -1,7 +1,7 @@
 module ESHelper
   def self.get_host_port
     if ENV["INTEGRATION"] == "true" || ENV["SECURE_INTEGRATION"] == "true"
-      "elasticsearch:9200"
+      "integration:9200"
     else
       "localhost:9200" # for local running integration specs outside docker
     end

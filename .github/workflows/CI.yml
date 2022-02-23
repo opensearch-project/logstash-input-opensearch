@@ -1,0 +1,35 @@
+name: Build and Test logstash-input-opensearch plugin
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  Build:
+    strategy:
+      matrix:
+        logstash: [ "7.16.3" ]
+        opendistro: [ "1.13.3" ]
+        integration: [ true ]
+        secure: [ false ]
+    name: Build and Test logstash-input-opensearch
+    runs-on: ubuntu-latest
+    env:
+      OPENDISTRO_VERSION: ${{ matrix.opendistro }}
+      LOGSTASH_VERSION: ${{ matrix.logstash }}
+      INTEGRATION: ${{ matrix.integration }}
+      SECURE_INTEGRATION: ${{ matrix.secure }}
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v1
+
+      - name: Build and pull docker files
+        run: |
+          ./.ci/docker-setup.sh
+
+      - name: Run integration tests
+        run: |
+          ./.ci/docker-run.sh

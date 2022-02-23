@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
 
-  s.name            = 'logstash-input-elasticsearch'
+  s.name            = 'logstash-input-opensearch'
   s.version         = '4.12.1'
   s.licenses        = ['Apache License (2.0)']
   s.summary         = "Reads query results from an Elasticsearch cluster"
