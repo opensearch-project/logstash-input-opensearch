@@ -1,14 +1,14 @@
-require 'elasticsearch'
-require 'elasticsearch/transport/transport/connections/selector'
+require 'opensearch'
+require 'opensearch/transport/transport/connections/selector'
 
-if Gem.loaded_specs['elasticsearch-transport'].version < Gem::Version.new("7.2.0")
-  # elasticsearch-transport versions prior to 7.2.0 suffered of a race condition on accessing
+if Gem.loaded_specs['opensearch-transport'].version < Gem::Version.new("7.2.0")
+  # opensearch-transport versions prior to 7.2.0 suffered of a race condition on accessing
   # the connection pool. This issue was fixed (in 7.2.0) with
   # https://github.com/elastic/elasticsearch-ruby/commit/15f9d78591a6e8823948494d94b15b0ca38819d1
   #
   # This plugin, at the moment, is using elasticsearch >= 5.0.5
   # When this requirement ceases, this patch could be removed.
-  module Elasticsearch
+  module OpenSearch
     module Transport
       module Transport
         module Connections
