@@ -157,15 +157,6 @@ class LogStash::Inputs::OpenSearch < LogStash::Inputs::Base
   # Socket Timeout, in Seconds
   config :socket_timeout_seconds, :validate => :positive_whole_number, :default => 60
 
-  # Cloud ID, from the Elastic Cloud web console. If set `hosts` should not be used.
-  config :cloud_id, :validate => :string
-
-  # Cloud authentication string ("<username>:<password>" format) is an alternative for the `user`/`password` configuration.
-  config :cloud_auth, :validate => :password
-
-  # Authenticate using OpenSearch API key.
-  config :api_key, :validate => :password
-
   # Set the address of a forward HTTP proxy.
   config :proxy, :validate => :uri_or_empty
 
@@ -207,14 +198,8 @@ class LogStash::Inputs::OpenSearch < LogStash::Inputs::Base
       @slices < 1 && fail(LogStash::ConfigurationError, "OpenSearch Input Plugin's `slices` option must be greater than zero, got `#{@slices}`")
     end
 
-    validate_authentication
-    fill_user_password_from_cloud_auth
-    fill_hosts_from_cloud_id
-
-
     transport_options = {:headers => {}}
     transport_options[:headers].merge!(setup_basic_auth(user, password))
-    transport_options[:headers].merge!(setup_api_key(api_key))
     transport_options[:headers].merge!({'user-agent' => prepare_user_agent()})
     transport_options[:request_timeout] = @request_timeout_seconds unless @request_timeout_seconds.nil?
     transport_options[:connect_timeout] = @connect_timeout_seconds unless @connect_timeout_seconds.nil?
@@ -358,21 +343,6 @@ class LogStash::Inputs::OpenSearch < LogStash::Inputs::Base
     hosts.nil? || ( hosts.is_a?(Array) && hosts.empty? )
   end
 
-  def validate_authentication
-    authn_options = 0
-    authn_options += 1 if @cloud_auth
-    authn_options += 1 if (@api_key && @api_key.value)
-    authn_options += 1 if (@user || (@password && @password.value))
-
-    if authn_options > 1
-      raise LogStash::ConfigurationError, 'Multiple authentication options are specified, please only use one of user/password, cloud_auth or api_key'
-    end
-
-    if @api_key && @api_key.value && @ssl != true
-      raise(LogStash::ConfigurationError, "Using api_key authentication requires SSL/TLS secured communication using the `ssl => true` option")
-    end
-  end
-
   def setup_ssl
     @ssl && @ca_file ? { :ssl  => true, :ca_file => @ca_file } : {}
   end
@@ -396,13 +366,6 @@ class LogStash::Inputs::OpenSearch < LogStash::Inputs::Base
     { 'Authorization' => "Basic #{token}" }
   end
 
-  def setup_api_key(api_key)
-    return {} unless (api_key && api_key.value)
-
-    token = ::Base64.strict_encode64(api_key.value)
-    { 'Authorization' => "ApiKey #{token}" }
-  end
-
   def prepare_user_agent
       os_name = java.lang.System.getProperty('os.name')
       os_version = java.lang.System.getProperty('os.version')
@@ -413,56 +376,6 @@ class LogStash::Inputs::OpenSearch < LogStash::Inputs::Base
       plugin_version = Gem.loaded_specs["logstash-input-opensearch"].version
       # example: logstash/7.14.1 (OS=Linux-5.4.0-84-generic-amd64; JVM=AdoptOpenJDK-11.0.11) logstash-input-opensearch/4.10.0
       "logstash/#{LOGSTASH_VERSION} (OS=#{os_name}-#{os_version}-#{os_arch}; JVM=#{jvm_vendor}-#{jvm_version}) logstash-#{@plugin_type}-#{config_name}/#{plugin_version}"
-  end
-
-  def fill_user_password_from_cloud_auth
-    return unless @cloud_auth
-
-    @user, @password = parse_user_password_from_cloud_auth(@cloud_auth)
-    params['user'], params['password'] = @user, @password
-  end
-
-  def fill_hosts_from_cloud_id
-    return unless @cloud_id
-
-    if @hosts && !hosts_default?(@hosts)
-      raise LogStash::ConfigurationError, 'Both cloud_id and hosts specified, please only use one of those.'
-    end
-    @hosts = parse_host_uri_from_cloud_id(@cloud_id)
-  end
-
-  def parse_host_uri_from_cloud_id(cloud_id)
-    begin # might not be available on older LS
-      require 'logstash/util/cloud_setting_id'
-    rescue LoadError
-      raise LogStash::ConfigurationError, 'The cloud_id setting is not supported by your version of Logstash, ' +
-          'please upgrade your installation (or set hosts instead).'
-    end
-
-    begin
-      cloud_id = LogStash::Util::CloudSettingId.new(cloud_id) # already does append ':{port}' to host
-    rescue ArgumentError => e
-      raise LogStash::ConfigurationError, e.message.to_s.sub(/Cloud Id/i, 'cloud_id')
-    end
-    cloud_uri = "#{cloud_id.opensearch_scheme}://#{cloud_id.opensearch_host}"
-    LogStash::Util::SafeURI.new(cloud_uri)
-  end
-
-  def parse_user_password_from_cloud_auth(cloud_auth)
-    begin # might not be available on older LS
-      require 'logstash/util/cloud_setting_auth'
-    rescue LoadError
-      raise LogStash::ConfigurationError, 'The cloud_auth setting is not supported by your version of Logstash, ' +
-          'please upgrade your installation (or set user/password instead).'
-    end
-
-    cloud_auth = cloud_auth.value if cloud_auth.is_a?(LogStash::Util::Password)
-    begin
-      cloud_auth = LogStash::Util::CloudSettingAuth.new(cloud_auth)
-    rescue ArgumentError => e
-      raise LogStash::ConfigurationError, e.message.to_s.sub(/Cloud Auth/i, 'cloud_auth')
-    end
-    [ cloud_auth.username, cloud_auth.password ]
   end
 
   # @private used by unit specs

@@ -1,7 +1,7 @@
 module OpenSearchHelper
   def self.get_host_port
     if ENV["INTEGRATION"] == "true" || ENV["SECURE_INTEGRATION"] == "true"
-      "opensearch:9200"
+      "integration:9200"
     else
       "localhost:9200" # for local running integration specs outside docker
     end
@@ -29,13 +29,7 @@ module OpenSearchHelper
   end
 
   def self.doc_type
-    if OpenSearchHelper.opensearch_version_satisfies?(">=8")
-      nil
-    elsif OpenSearchHelper.opensearch_version_satisfies?(">=7")
-      "_doc"
-    else
-      "doc"
-    end
+  "_doc"
   end
 
   def self.index_doc(opensearch, params)
