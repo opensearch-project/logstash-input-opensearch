@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
 
-  s.name            = 'logstash-input-opensearch'
+  s.name            = 'logstash-input-elasticsearch'
   s.version         = '4.12.1'
   s.licenses        = ['Apache License (2.0)']
   s.summary         = "Reads query results from an Elasticsearch cluster"
@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'logstash-mixin-event_support', '~> 1.0'
   s.add_runtime_dependency "logstash-mixin-validator_support", '~> 1.0'
 
-  s.add_runtime_dependency 'elasticsearch', '>= 7.14.0' # LS >= 6.7 and < 7.14 all used version 5.0.5
+  s.add_runtime_dependency 'elasticsearch', '~> 7.13.2'
 
   s.add_runtime_dependency 'tzinfo'
   s.add_runtime_dependency 'tzinfo-data'
