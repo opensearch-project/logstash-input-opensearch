@@ -30,5 +30,5 @@ else
   echo "Waiting for cluster to respond..."
   VERSION=$(wait_for_es)
   echo "Cluster $VERSION is Up!"
-  bundle exec rspec -fd $extra_tag_args --tag version:$VERSION spec/inputs/integration
+  bundle exec rspec -fd $extra_tag_args --tag es_version:$VERSION spec/inputs/integration
 fi
