@@ -4,20 +4,18 @@ set -ex
 export PATH=$BUILD_DIR/gradle/bin:$PATH
 
 wait_for_es() {
-  echo "Waiting for elasticsearch to respond..."
-  es_url="http://elasticsearch:9200"
+
+  SERVICE_URL="http://integration:9200"
   if [[ "$SECURE_INTEGRATION" == "true" ]]; then
-    es_url="https://elasticsearch:9200 -k"
+    SERVICE_URL="https://integration:9200 -k -u admin:admin"
   fi
-  count=120
-  while ! curl --silent $es_url && [[ $count -ne 0 ]]; do
+  count=10
+  while ! curl -s $SERVICE_URL >/dev/null && [[ $count -ne 0 ]]; do
     count=$(( $count - 1 ))
     [[ $count -eq 0 ]] && return 1
-    sleep 1
+    sleep 20
   done
-  echo "Elasticsearch is Up !"
-
-  return 0
+  echo $(curl -s $SERVICE_URL | python -c "import sys, json; print(json.load(sys.stdin)['version']['number'])")
 }
 
 if [[ "$INTEGRATION" != "true" ]]; then
@@ -28,6 +26,9 @@ else
   else
     extra_tag_args="--tag ~secure_integration --tag integration"
   fi
-  wait_for_es
-  bundle exec rspec -fd $extra_tag_args --tag es_version:$ELASTIC_STACK_VERSION spec/inputs/integration
+
+  echo "Waiting for cluster to respond..."
+  VERSION=$(wait_for_es)
+  echo "Cluster $VERSION is Up!"
+  bundle exec rspec -fd $extra_tag_args --tag es_version:$VERSION spec/inputs/integration
 fi
