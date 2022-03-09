@@ -8,14 +8,14 @@ on:
       - "*"
 
 jobs:
-  Build:
+  Integration-Test-OpenDistro:
     strategy:
       matrix:
         logstash: [ "7.16.3" ]
         opendistro: [ "1.13.3" ]
         integration: [ true ]
         secure: [ false ]
-    name: Build and Test logstash-input-opensearch
+    name: Integration Test for logstash-input-opensearch against OpenDistro
     runs-on: ubuntu-latest
     env:
       OPENDISTRO_VERSION: ${{ matrix.opendistro }}
@@ -28,8 +28,8 @@ jobs:
 
       - name: Build and pull docker files
         run: |
-          ./.ci/docker-setup.sh
+          ./.ci/opendistro/docker-setup.sh
 
       - name: Run integration tests
         run: |
-          ./.ci/docker-run.sh
+          ./.ci/opendistro/docker-run.sh

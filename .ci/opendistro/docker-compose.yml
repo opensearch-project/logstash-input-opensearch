@@ -4,15 +4,12 @@ services:
 
   logstash:
     build:
-      context: ../
+      context: ../../
       dockerfile: .ci/Dockerfile
       args:
         - LOGSTASH_VERSION=${LOGSTASH_VERSION:-7.13.2}
-        #- ELASTIC_STACK_VERSION=$ELASTIC_STACK_VERSION
-        #- DISTRIBUTION=${DISTRIBUTION:-default}
-        #- INTEGRATION=false
     command: .ci/run.sh
-    env_file: docker.env
+    env_file: ../docker.env
     environment:
       - SPEC_OPTS
       - LOG_LEVEL # devutils (>= 2.0.4) reads the ENV and sets LS logging

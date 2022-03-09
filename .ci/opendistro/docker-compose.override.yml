@@ -10,8 +10,8 @@ services:
 
   integration:
     build:
-      context: ../
-      dockerfile: .ci/Dockerfile.opendistro
+      context: ../../
+      dockerfile: .ci/opendistro/Dockerfile.opendistro
       args:
         - OPENDISTRO_VERSION=${OPENDISTRO_VERSION:-latest}
         - INTEGRATION=${INTEGRATION:-false}
