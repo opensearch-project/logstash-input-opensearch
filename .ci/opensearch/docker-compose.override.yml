@@ -10,10 +10,10 @@ services:
 
   integration:
     build:
-      context: ../
-      dockerfile: .ci/Dockerfile.opendistro
+      context: ../../
+      dockerfile: .ci/opensearch/Dockerfile.opensearch
       args:
-        - OPENDISTRO_VERSION=${OPENDISTRO_VERSION:-latest}
+        - OPENSEARCH_VERSION=${OPENSEARCH_VERSION:-latest}
         - INTEGRATION=${INTEGRATION:-false}
         - SECURE_INTEGRATION=${SECURE_INTEGRATION:-false}
     environment:
@@ -26,5 +26,5 @@ services:
         hard: -1
     ports:
       - "9200:9200"
-    user: elasticsearch
+    user: opensearch
 
