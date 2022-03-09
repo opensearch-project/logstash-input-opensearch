@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+
+  logstash:
+    command: /usr/share/plugins/plugin/.ci/logstash-run.sh
+    environment:
+        - INTEGRATION=${INTEGRATION:-false}
+        - SECURE_INTEGRATION=${SECURE_INTEGRATION:-false}
+
+  integration:
+    build:
+      context: ../../
+      dockerfile: .ci/opensearch/Dockerfile.opensearch
+      args:
+        - OPENSEARCH_VERSION=${OPENSEARCH_VERSION:-latest}
+        - INTEGRATION=${INTEGRATION:-false}
+        - SECURE_INTEGRATION=${SECURE_INTEGRATION:-false}
+    environment:
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+    tty: true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    user: opensearch
+
