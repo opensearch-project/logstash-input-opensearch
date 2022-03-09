@@ -33,7 +33,7 @@ module OpenSearch
             headers[ACCEPT_ENCODING] = GZIP if use_compression?
             (request_options[:headers] ||= {}).merge!(headers) # this line was changed
           end
-
+          
         end
       end
     end
