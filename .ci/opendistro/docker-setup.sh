@@ -8,7 +8,7 @@ if [ -f Gemfile.lock ]; then
   rm Gemfile.lock
 fi
 
-cd .ci
+cd .ci/opendistro
 
 docker-compose down
 docker-compose build
