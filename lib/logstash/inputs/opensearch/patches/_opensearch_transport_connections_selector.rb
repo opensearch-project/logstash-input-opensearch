@@ -1,3 +1,6 @@
+# Copyright OpenSearch Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 require 'opensearch'
 require 'opensearch/transport/transport/connections/selector'
 

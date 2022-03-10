@@ -1,3 +1,6 @@
+# Copyright OpenSearch Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 module OpenSearchHelper
   def self.get_host_port
     if ENV["INTEGRATION"] == "true" || ENV["SECURE_INTEGRATION"] == "true"
