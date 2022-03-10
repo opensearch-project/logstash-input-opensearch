@@ -8,7 +8,7 @@
 
 ## Welcome!
 
-**logstash-input-opensearch** is a community-driven, open source fork logstash-input-elasticsearch licensed under the [Apache v2.0 License](LICENSE). For more information, see [opensearch.org](https://opensearch.org/).
+**logstash-input-opensearch** is a community-driven, open source fork logstash-input-elasticsearch licensed under the [Apache v2.0 License](LICENSE.txt). For more information, see [opensearch.org](https://opensearch.org/).
 
 The logstash-input-opensearch plugin helps to read the search query results performed on an OpenSearch cluster. This is useful for replaying test logs, reindexing, etc. This helps users to run the query one time to load data into Logstash.
 
