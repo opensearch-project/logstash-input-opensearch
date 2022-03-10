@@ -8,6 +8,27 @@ on:
       - "*"
 
 jobs:
+  Unit-test:
+    strategy:
+      matrix:
+        logstash: [ "7.16.3" ]
+    name: Unit Test logstash-input-opensearch
+    runs-on: ubuntu-latest
+    env:
+      LOGSTASH_VERSION: ${{ matrix.logstash }}
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v1
+
+      - name: Build and pull docker files for unit tests with logstash ${{ matrix.logstash }}
+        run: |
+          ./.ci/unit-test/docker-setup.sh
+      - name: Run unit tests
+        run: |
+          ./.ci/unit-test/docker-run.sh
+
+
   Integration-Test-OpenSearch:
     strategy:
       matrix:
