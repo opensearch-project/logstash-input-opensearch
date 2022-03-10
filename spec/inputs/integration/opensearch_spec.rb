@@ -54,8 +54,8 @@ describe LogStash::Inputs::OpenSearch do
   end
 
   describe 'against a secured opensearch', :secure_integration => true do
-    let(:user) { ENV['ELASTIC_USER'] || 'simpleuser' }
-    let(:password) { ENV['ELASTIC_PASSWORD'] || 'abc123' }
+    let(:user) { ENV['USER'] || 'admin' }
+    let(:password) { ENV['PASSWORD'] || 'admin' }
     let(:ca_file) { "spec/fixtures/test_certs/ca.crt" }
 
     let(:client_options) { { :ca_file => ca_file, :user => user, :password => password } }
