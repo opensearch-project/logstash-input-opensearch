@@ -7,21 +7,18 @@ services:
     environment:
         - INTEGRATION=${INTEGRATION:-false}
         - SECURE_INTEGRATION=${SECURE_INTEGRATION:-false}
-        - ELASTIC_STACK_VERSION=$ELASTIC_STACK_VERSION
-  elasticsearch:
+
+  integration:
     build:
-      context: ../
-      dockerfile: .ci/Dockerfile.elasticsearch
+      context: ../../
+      dockerfile: .ci/opensearch/Dockerfile.opensearch
       args:
-        - ELASTIC_STACK_VERSION=$ELASTIC_STACK_VERSION
+        - OPENSEARCH_VERSION=${OPENSEARCH_VERSION:-latest}
         - INTEGRATION=${INTEGRATION:-false}
         - SECURE_INTEGRATION=${SECURE_INTEGRATION:-false}
     environment:
-      #- ELASTIC_PASSWORD=$ELASTIC_PASSWORD a user is setup manually
-      - xpack.security.enabled=${SECURE_INTEGRATION:-false}
       - bootstrap.memory_lock=true
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms640m -Xmx640m
     tty: true
     ulimits:
       memlock:
@@ -29,5 +26,5 @@ services:
         hard: -1
     ports:
       - "9200:9200"
-    user: elasticsearch
+    user: opensearch
 

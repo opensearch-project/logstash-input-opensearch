@@ -1,0 +1,62 @@
+name: Build and Test logstash-input-opensearch plugin
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  Integration-Test-OpenSearch:
+    strategy:
+      matrix:
+        logstash: [ "7.16.3" ]
+        opensearch: [ "1.2.1" ]
+        integration: [ true ]
+        secure: [ false ]
+    name: Integration Test for logstash-input-opensearch against OpenSearch
+    runs-on: ubuntu-latest
+    env:
+      OPENDISTRO_VERSION: ${{ matrix.opensearch }}
+      LOGSTASH_VERSION: ${{ matrix.logstash }}
+      INTEGRATION: ${{ matrix.integration }}
+      SECURE_INTEGRATION: ${{ matrix.secure }}
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v1
+
+      - name: Build and pull docker files for OpenSearch-${{ matrix.opensearch }} with security-${{ matrix.secure }} for logstash-${{ matrix.logstash }}
+        run: |
+          ./.ci/opensearch/docker-setup.sh
+
+      - name: Run integration tests against OpenSearch-${{ matrix.opensearch }} with security-${{ matrix.secure }} for logstash-${{ matrix.logstash }}
+        run: |
+          ./.ci/opensearch/docker-run.sh
+
+
+  Integration-Test-OpenDistro:
+    strategy:
+      matrix:
+        logstash: [ "7.16.3" ]
+        opendistro: [ "1.13.3" ]
+        integration: [ true ]
+        secure: [ false ]
+    name: Integration Test for logstash-input-opensearch against OpenDistro
+    runs-on: ubuntu-latest
+    env:
+      OPENDISTRO_VERSION: ${{ matrix.opendistro }}
+      LOGSTASH_VERSION: ${{ matrix.logstash }}
+      INTEGRATION: ${{ matrix.integration }}
+      SECURE_INTEGRATION: ${{ matrix.secure }}
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v1
+
+      - name: Build and pull docker files for OpenDistro-${{ matrix.opendistro }} with security-${{ matrix.secure }} for logstash-${{ matrix.logstash }}
+        run: |
+          ./.ci/opendistro/docker-setup.sh
+
+      - name: Run integration tests against OpenDistro-${{ matrix.opendistro }} with security-${{ matrix.secure }} for logstash-${{ matrix.logstash }}
+        run: |
+          ./.ci/opendistro/docker-run.sh
