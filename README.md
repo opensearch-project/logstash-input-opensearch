@@ -1,3 +1,5 @@
+[![Build and Test logstash-input-opensearch plugin](https://github.com/opensearch-project/logstash-input-opensearch/actions/workflows/CI.yml/badge.svg)](https://github.com/opensearch-project/logstash-input-opensearch/actions/workflows/CI.yml)
+![PRs welcome!](https://img.shields.io/badge/PRs-welcome!-success)
 # Logstash Input OpenSearch
 
 - [Welcome!](#welcome)
