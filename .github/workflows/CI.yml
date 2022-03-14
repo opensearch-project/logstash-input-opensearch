@@ -35,7 +35,7 @@ jobs:
         logstash: [ "7.16.3" ]
         opensearch: [ "1.2.1" ]
         integration: [ true ]
-        secure: [ false ]
+        secure: [ true, false ]
     name: Integration Test for logstash-input-opensearch against OpenSearch
     runs-on: ubuntu-latest
     env:
@@ -62,7 +62,7 @@ jobs:
         logstash: [ "7.16.3" ]
         opendistro: [ "1.13.3" ]
         integration: [ true ]
-        secure: [ false ]
+        secure: [ true, false ]
     name: Integration Test for logstash-input-opensearch against OpenDistro
     runs-on: ubuntu-latest
     env:

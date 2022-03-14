@@ -59,11 +59,10 @@ describe LogStash::Inputs::OpenSearch do
   describe 'against a secured opensearch', :secure_integration => true do
     let(:user) { ENV['USER'] || 'admin' }
     let(:password) { ENV['PASSWORD'] || 'admin' }
-    let(:ca_file) { "spec/fixtures/test_certs/ca.crt" }
 
-    let(:client_options) { { :ca_file => ca_file, :user => user, :password => password } }
+    let(:client_options) { { :user => user, :password => password } }
 
-    let(:config) { super().merge('user' => user, 'password' => password, 'ssl' => true, 'ca_file' => ca_file) }
+    let(:config) { super().merge('user' => user, 'password' => password, 'ssl' => true) }
 
     it_behaves_like 'an opensearch index plugin'
 

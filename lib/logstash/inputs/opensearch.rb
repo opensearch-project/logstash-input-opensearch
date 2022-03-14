@@ -347,7 +347,8 @@ class LogStash::Inputs::OpenSearch < LogStash::Inputs::Base
   end
 
   def setup_ssl
-    @ssl && @ca_file ? { :ssl  => true, :ca_file => @ca_file } : {}
+    return { :ssl  => true, :ca_file => @ca_file } if @ssl && @ca_file
+    return { :ssl  => true, :verify => false } if @ssl  # Setting verify as false if ca_file is not provided
   end
 
   def setup_hosts
