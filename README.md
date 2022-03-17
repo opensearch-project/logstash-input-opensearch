@@ -4,6 +4,7 @@
 
 - [Welcome!](#welcome)
 - [Project Resources](#project-resources)
+- [Configuration for Logstash Input OpenSearch Plugin](#configuration-for-logstash-input-opensearch-plugin)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 - [Copyright](#copyright)
@@ -12,7 +13,7 @@
 
 **logstash-input-opensearch** is a community-driven, open source fork logstash-input-elasticsearch licensed under the [Apache v2.0 License](LICENSE.txt). For more information, see [opensearch.org](https://opensearch.org/).
 
-The logstash-input-opensearch plugin helps to read the search query results performed on an OpenSearch cluster. This is useful for replaying test logs, reindexing, etc. This helps users to run the query one time to load data into Logstash.
+The logstash-input-opensearch plugin helps to read the search query results performed on an OpenSearch cluster. This is useful for replaying test logs, reindexing, etc. This helps users to periodically schedule ingestion using cron syntax (using `schedule` configuration setting) or by running the query one time to load data into Logstash.
 
 ## Project Resources
 
@@ -26,6 +27,27 @@ The logstash-input-opensearch plugin helps to read the search query results perf
 * [Release Management](RELEASING.md)
 * [Admin Responsibilities](ADMINS.md)
 * [Security](SECURITY.md)
+
+## Configuration for Logstash Input OpenSearch Plugin
+
+To run the Logstash Input OpenSearch plugin, add following configuration in your logstash.conf file.
+```
+input {
+    opensearch {
+        hosts       => ["hostname:port"]   
+        user        => "admin"
+        password    => "admin"
+        index       => "logstash-logs-%{+YYYY.MM.dd}"
+        query       => "{ "query": { "match_all": {}} }"
+    }
+}
+```
+
+Using the above configuration, the `match_all` query filter is triggered and data is loaded once.
+
+`schedule` setting can be used to periodically schedule ingestion using cron syntax.
+
+Example: `schedule => "* * * * *"` Adding this to the above configuration loads the data every minute. 
 
 ## Code of Conduct
 
