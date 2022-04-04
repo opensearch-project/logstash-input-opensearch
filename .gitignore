@@ -3,3 +3,5 @@ Gemfile.lock
 .bundle
 vendor
 /.idea/
+gem-private_key.pem
+

@@ -1,6 +1,8 @@
 # Copyright OpenSearch Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+signing_key_path = "gem-private_key.pem"
+
 Gem::Specification.new do |s|
 
   s.name            = 'logstash-input-opensearch'
@@ -18,6 +20,11 @@ Gem::Specification.new do |s|
 
   # Tests
   s.test_files = s.files.grep(%r{^(test|spec|features)/})
+
+  if $PROGRAM_NAME.end_with?("gem") && ARGV == ["build", __FILE__] && File.exist?(signing_key_path)
+    s.signing_key = signing_key_path
+    s.cert_chain  = ['certs/opensearch-rubygems.pem']
+  end
 
   # Special flag to let us know this is actually a logstash plugin
   s.metadata = { "logstash_plugin" => "true", "logstash_group" => "input" }
