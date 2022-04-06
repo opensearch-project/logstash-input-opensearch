@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.homepage        = "https://opensearch.org/"
   s.require_paths = ["lib"]
 
+  s.platform = RUBY_PLATFORM
+
   # Files
   s.files = Dir["lib/**/*","spec/**/*","*.gemspec","*.md","CONTRIBUTORS","Gemfile","LICENSE","NOTICE.TXT", "vendor/jar-dependencies/**/*.jar", "vendor/jar-dependencies/**/*.rb", "VERSION", "docs/**/*"]
 
