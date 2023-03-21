@@ -7,7 +7,6 @@ This document contains a list of maintainers in this repo. See [opensearch-proje
 | Maintainer             | GitHub ID                                             | Affiliation |
 | ---------------------- | ----------------------------------------------------- | ----------- |
 | Asif Sohail Mohammed | [asifsmohammed](https://github.com/asifsmohammed)     | Amazon      |
-| Shivani Shukla       | [sshivanii](https://github.com/sshivanii)             | Amazon      |
 | David Venable        | [dlvenable](https://github.com/dlvenable)             | Amazon      |
 | Hai Yan              | [oeyh](https://github.com/oeyh)                       | Amazon      |
 
@@ -16,5 +15,6 @@ This document contains a list of maintainers in this repo. See [opensearch-proje
 
 | Maintainer             | GitHub ID                                             | Affiliation |
 | ---------------------- | ----------------------------------------------------- | ----------- |
+| Shivani Shukla       | [sshivanii](https://github.com/sshivanii)             | Amazon      |
 | Naveen Tatikonda       | [naveentatikonda](https://github.com/naveentatikonda) | Amazon      |
 | Vamshi Vijay Nakkirtha | [vamshin](https://github.com/vamshin)                 | Amazon      |
