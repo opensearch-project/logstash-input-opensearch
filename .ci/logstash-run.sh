@@ -7,7 +7,7 @@ wait_for_es() {
 
   SERVICE_URL="http://integration:9200"
   if [[ "$SECURE_INTEGRATION" == "true" ]]; then
-    SERVICE_URL="https://integration:9200 -k -u admin:admin"
+    SERVICE_URL="https://integration:9200 -k -u admin:$OPENSEARCH_INITIAL_ADMIN_PASSWORD"
   fi
   count=10
   while ! curl -s $SERVICE_URL >/dev/null && [[ $count -ne 0 ]]; do
